@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/item_playlist_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/spacing_small"
+    android:paddingTop="8dp"
+    android:paddingEnd="@dimen/spacing_small"
+    android:paddingBottom="8dp">
+
+    <!-- Playlist Icon Container -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="@dimen/album_art_small"
+        android:layout_height="@dimen/album_art_small"
+        app:cardBackgroundColor="@color/primary_container"
+        app:cardCornerRadius="@dimen/corner_radius_small"
+        app:strokeWidth="0dp">
+
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_playlist"
+            app:tint="@color/on_primary_container" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_medium"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_playlist_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Playlist Name"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/text_body"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_playlist_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="0 songs"
+            android:textColor="?attr/colorOutline"
+            android:textSize="@dimen/text_small" />
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/btn_playlist_more"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Options"
+        android:src="@drawable/ic_more_vert"
+        app:tint="?attr/colorOutline" />
+
+</LinearLayout>

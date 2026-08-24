@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/colorSurface"
+    android:padding="@dimen/spacing_large">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Title & Enable Switch -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/equalizer"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="@dimen/text_headline"
+                android:textStyle="bold" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switch_equalizer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:checked="true" />
+        </RelativeLayout>
+
+        <!-- Presets Dropdown Spinner -->
+        <Spinner
+            android:id="@+id/spinner_presets"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="@dimen/spacing_medium"
+            android:background="?attr/colorSurfaceVariant"
+            android:paddingStart="@dimen/spacing_medium"
+            android:paddingEnd="@dimen/spacing_medium" />
+
+        <!-- 5-Band Equalizer Container -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_large"
+            android:text="Frequencies"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/text_body"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/layout_equalizer_bands"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_small"
+            android:gravity="center"
+            android:orientation="vertical" />
+
+        <!-- Bass Boost Slider -->
+        <TextView
+            android:id="@+id/tv_bass_boost_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_large"
+            android:text="@string/bass_boost"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/text_body"
+            android:textStyle="bold" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/slider_bass_boost"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:valueFrom="0"
+            android:valueTo="1000"
+            android:value="0"
+            app:thumbColor="@color/primary"
+            app:trackColorActive="@color/primary" />
+
+        <!-- 3D Virtualizer Slider -->
+        <TextView
+            android:id="@+id/tv_virtualizer_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_medium"
+            android:text="@string/virtualizer"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/text_body"
+            android:textStyle="bold" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/slider_virtualizer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:valueFrom="0"
+            android:valueTo="1000"
+            android:value="0"
+            app:thumbColor="@color/secondary"
+            app:trackColorActive="@color/secondary" />
+
+        <!-- Loudness Enhancer Slider -->
+        <TextView
+            android:id="@+id/tv_loudness_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_medium"
+            android:text="@string/loudness_enhancer"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/text_body"
+            android:textStyle="bold" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/slider_loudness"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:valueFrom="0"
+            android:valueTo="1000"
+            android:value="0"
+            app:thumbColor="@color/tertiary"
+            app:trackColorActive="@color/tertiary" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

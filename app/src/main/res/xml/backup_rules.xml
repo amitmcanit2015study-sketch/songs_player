@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <include domain="database" path="songs_player_database" />
+    <include domain="sharedpref" path="songs_player_prefs.xml" />
+    <exclude domain="database" path="songs_player_database-wal" />
+</full-backup-content>

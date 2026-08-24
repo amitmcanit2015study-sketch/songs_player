@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Brand Colors: Deep Royal Blue to Electric Purple -->
+    <color name="primary">#6C5CE7</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="primary_container">#E8DEFF</color>
+    <color name="on_primary_container">#23005C</color>
+
+    <color name="secondary">#0984E3</color>
+    <color name="on_secondary">#FFFFFF</color>
+    <color name="secondary_container">#D2E4FF</color>
+    <color name="on_secondary_container">#001D35</color>
+
+    <color name="tertiary">#E84393</color>
+    <color name="on_tertiary">#FFFFFF</color>
+    <color name="tertiary_container">#FFD8EC</color>
+    <color name="on_tertiary_container">#37002B</color>
+
+    <!-- Neutral Colors - Light Mode -->
+    <color name="background_light">#F8F9FE</color>
+    <color name="on_background_light">#1A1C22</color>
+    <color name="surface_light">#FFFFFF</color>
+    <color name="on_surface_light">#1A1C22</color>
+    <color name="surface_variant_light">#E3E1EC</color>
+    <color name="on_surface_variant_light">#46464F</color>
+    <color name="outline_light">#777680</color>
+
+    <!-- Neutral Colors - Dark Mode -->
+    <color name="background_dark">#0F1016</color>
+    <color name="on_background_dark">#E2E2EC</color>
+    <color name="surface_dark">#181922</color>
+    <color name="on_surface_dark">#E2E2EC</color>
+    <color name="surface_variant_dark">#242634</color>
+    <color name="on_surface_variant_dark">#C7C5D0</color>
+    <color name="outline_dark">#91909A</color>
+
+    <!-- Gradient Accents -->
+    <color name="gradient_start">#6C5CE7</color>
+    <color name="gradient_center">#74B9FF</color>
+    <color name="gradient_end">#A29BFE</color>
+    
+    <color name="player_background_dark">#12131C</color>
+    <color name="mini_player_bg">#202230</color>
+    <color name="card_glass_bg">#33FFFFFF</color>
+    <color name="favorite_red">#FF4757</color>
+    <color name="seek_bar_thumb">#A29BFE</color>
+    <color name="seek_bar_progress">#6C5CE7</color>
+    <color name="seek_bar_background">#3D405B</color>
+    
+    <!-- Status & Helpers -->
+    <color name="success">#2ED573</color>
+    <color name="warning">#FFA502</color>
+    <color name="error">#FF5252</color>
+</resources>

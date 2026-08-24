@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Soft Glow Circle -->
+    <path
+        android:fillAlpha="0.15"
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,20 A34,34 0 1,0 54,88 A34,34 0 1,0 54,20 Z" />
+
+    <!-- Outer Gradient Play Ring -->
+    <path
+        android:pathData="M54,26 A28,28 0 1,1 53.9,26 Z"
+        android:strokeWidth="3.5"
+        android:strokeAlpha="0.8">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:angle="45"
+                android:endColor="#74B9FF"
+                android:startColor="#E84393"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- Music Note + Play Triangle Hybrid -->
+    <!-- Music note stem and double beam -->
+    <path
+        android:pathData="M48,34 L68,30 L68,40 L48,44 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:angle="0"
+                android:endColor="#FFFFFF"
+                android:startColor="#74B9FF"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- Note Stem 1 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M48,34 L52,34 L52,58 L48,58 Z" />
+
+    <!-- Note Stem 2 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M64,30 L68,30 L68,54 L64,54 Z" />
+
+    <!-- Left Note Head (Circular) -->
+    <path
+        android:fillColor="#74B9FF"
+        android:pathData="M44,56 C40,56 36,59 36,63 C36,67 40,70 45,70 C50,70 53,67 53,63 L53,56 Z" />
+
+    <!-- Right Note Head (Merged into Play Button Triangle) -->
+    <path
+        android:pathData="M62,50 L76,60 L62,70 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:angle="90"
+                android:endColor="#FF7675"
+                android:startColor="#FD79A8"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+</vector>

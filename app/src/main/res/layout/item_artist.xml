@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/item_artist_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/spacing_small"
+    android:paddingTop="8dp"
+    android:paddingEnd="@dimen/spacing_small"
+    android:paddingBottom="8dp">
+
+    <!-- Circular Artist Image -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/iv_artist_image"
+        android:layout_width="@dimen/album_art_small"
+        android:layout_height="@dimen/album_art_small"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bg_album_placeholder"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.SongsPlayer.Large" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_medium"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_artist_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Artist Name"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/text_body"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_artist_tracks_count"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="0 tracks • 0 albums"
+            android:textColor="?attr/colorOutline"
+            android:textSize="@dimen/text_small" />
+    </LinearLayout>
+
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_next"
+        app:tint="?attr/colorOutline" />
+
+</LinearLayout>
