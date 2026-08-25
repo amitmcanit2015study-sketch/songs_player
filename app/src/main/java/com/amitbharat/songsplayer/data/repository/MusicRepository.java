@@ -54,15 +54,15 @@ public class MusicRepository {
 
         list.add(new Song(
                 2001L,
-                "Gehra Hua (From \"Dhurandhar\")",
-                "Arijit Singh, Shashwat Sachdev, Irshad Kamil",
+                "Gehra Hua",
+                "Irshad Kamil, Shashwat Sachdev, Arijit Singh",
                 "Dhurandhar",
                 0,
                 362000,
                 null,
                 true,
-                "https://aac.saavncdn.com/450/f467e05e2825cec2203546333e0d0550_320.mp4",
-                "https://c.saavncdn.com/450/Gehra-Hua-From-Dhurandhar-Hindi-2025-20251205154217-500x500.webp",
+                "https://aac.saavncdn.com/475/04cc3b6ccd915df473947d932f094545_320.mp4",
+                "https://c.saavncdn.com/475/Dhurandhar-Hindi-2025-20260203083204-500x500.webp",
                 false,
                 56110917,
                 System.currentTimeMillis(),
@@ -71,15 +71,15 @@ public class MusicRepository {
 
         list.add(new Song(
                 2002L,
-                "Tum Hi Ho (From \"Aashiqui 2\")",
+                "Tum Hi Ho",
                 "Arijit Singh, Mithoon",
                 "Aashiqui 2",
                 0,
                 262000,
                 null,
                 true,
-                "https://aac.saavncdn.com/840/c9e70fb62d66fa6e14f6b7cdbc56cc06_320.mp4",
-                "https://c.saavncdn.com/840/Aashiqui-2-Hindi-2013-500x500.jpg",
+                "https://aac.saavncdn.com/430/5c5ea5cc00e3bff45616013226f376fe_320.mp4",
+                "https://c.saavncdn.com/430/Aashiqui-2-Hindi-2013-500x500.jpg",
                 false,
                 89200000,
                 System.currentTimeMillis(),
@@ -88,19 +88,19 @@ public class MusicRepository {
 
         list.add(new Song(
                 2003L,
-                "Hass Hass",
-                "Diljit Dosanjh, Sia, Greg Kurstin",
-                "Hass Hass",
+                "Apna Bana Le",
+                "Arijit Singh, Sachin-Jigar, Amitabh Bhattacharya",
+                "Bhediya",
                 0,
-                154000,
+                261000,
                 null,
                 true,
-                "https://aac.saavncdn.com/245/fd196de0f557e19e2e8d42150d34cf57_320.mp4",
-                "https://c.saavncdn.com/245/Hass-Hass-Punjabi-2023-20231026053424-500x500.jpg",
+                "https://aac.saavncdn.com/815/483a6e118e8108cbb3e5cd8701674f32_320.mp4",
+                "https://c.saavncdn.com/815/Bhediya-Hindi-2023-20230927155213-500x500.webp",
                 false,
-                42000000,
+                64000000,
                 System.currentTimeMillis(),
-                6160000
+                10440000
         ));
 
         list.add(new Song(
@@ -112,8 +112,8 @@ public class MusicRepository {
                 204000,
                 null,
                 true,
-                "https://aac.saavncdn.com/248/46944eb7b4b31f5b0abf5eb2e1be2d25_320.mp4",
-                "https://c.saavncdn.com/248/Evolve-English-2017-500x500.jpg",
+                "https://aac.saavncdn.com/248/46944eb7b4b31f5b0abf5eb2e1be2d2a_320.mp4",
+                "https://c.saavncdn.com/248/Evolve-English-2018-20260605220036-500x500.webp",
                 false,
                 78000000,
                 System.currentTimeMillis(),
@@ -126,11 +126,11 @@ public class MusicRepository {
                 "Kumar Sanu, Alka Yagnik, Anu Malik",
                 "Main Khiladi Tu Anari",
                 0,
-                473000,
+                468000,
                 null,
                 true,
-                "https://aac.saavncdn.com/474/fc90bd930001b9e5eb98ac005cce18be_320.mp4",
-                "https://c.saavncdn.com/474/Main-Khiladi-Tu-Anari-Hindi-1994-500x500.jpg",
+                "https://aac.saavncdn.com/474/fc90bd930001b9e5eb98ac005cce18ba_320.mp4",
+                "https://c.saavncdn.com/474/Main-Khiladi-Tu-Anari-Original-Motion-Picture-Soundtrack-Hindi-1994-20250912131553-500x500.webp",
                 false,
                 31000000,
                 System.currentTimeMillis(),
@@ -139,19 +139,19 @@ public class MusicRepository {
 
         list.add(new Song(
                 2006L,
-                "Apna Bana Le",
-                "Arijit Singh, Sachin-Jigar, Amitabh Bhattacharya",
-                "Bhediya",
+                "Hass Hass",
+                "Diljit Dosanjh, Sia, Greg Kurstin",
+                "Hass Hass",
                 0,
-                261000,
+                153000,
                 null,
                 true,
-                "https://aac.saavncdn.com/085/8763ba5bceea680e6c1e95cfc925567b_320.mp4",
-                "https://c.saavncdn.com/085/Bhediya-Hindi-2022-20221124110323-500x500.jpg",
+                "https://aac.saavncdn.com/245/fd196de0f557e19e2e8d42150d34cf5b_320.mp4",
+                "https://c.saavncdn.com/245/Hass-Hass-English-2023-20231026170517-500x500.webp",
                 false,
-                64000000,
+                42000000,
                 System.currentTimeMillis(),
-                10440000
+                6160000
         ));
 
         return list;

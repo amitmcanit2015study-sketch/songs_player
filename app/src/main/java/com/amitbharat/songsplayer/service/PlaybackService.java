@@ -22,6 +22,7 @@ import androidx.media3.common.PlaybackParameters;
 import androidx.media3.common.Player;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.datasource.DefaultHttpDataSource;
+import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 import androidx.media3.session.MediaSession;
@@ -85,26 +86,40 @@ public class PlaybackService extends MediaSessionService {
         musicRepository = new MusicRepository(getApplication());
         audioEffectsManager = new AudioEffectsManager(this);
 
-        // Configure ExoPlayer with robust HTTP DataSource for YouTube audio streams
+        // Configure ExoPlayer with robust HTTP DataSource and keep-alive headers
         DefaultHttpDataSource.Factory httpDataSourceFactory = new DefaultHttpDataSource.Factory()
                 .setUserAgent("Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36")
                 .setAllowCrossProtocolRedirects(true)
-                .setConnectTimeoutMs(15000)
-                .setReadTimeoutMs(25000);
+                .setConnectTimeoutMs(20000)
+                .setReadTimeoutMs(30000)
+                .setKeepPostFor302Redirects(true);
 
         DefaultMediaSourceFactory mediaSourceFactory = new DefaultMediaSourceFactory(this)
                 .setDataSourceFactory(httpDataSourceFactory);
+
+        // Configure LoadControl to buffer 3 minutes ahead for smooth long song playback
+        DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
+                .setBufferDurationsMs(
+                        30000,   // minBufferMs (30s)
+                        180000,  // maxBufferMs (180s = 3 minutes buffer ahead)
+                        1500,    // bufferForPlaybackMs
+                        3000     // bufferForPlaybackAfterRebufferMs
+                )
+                .setPrioritizeTimeOverSizeThresholds(true)
+                .build();
 
         AudioAttributes audioAttributes = new AudioAttributes.Builder()
                 .setUsage(C.USAGE_MEDIA)
                 .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
                 .build();
 
+        // WAKE_MODE_NETWORK acquires both CPU WakeLock and WiFiLock for unbroken background streaming
         player = new ExoPlayer.Builder(this)
                 .setMediaSourceFactory(mediaSourceFactory)
+                .setLoadControl(loadControl)
                 .setAudioAttributes(audioAttributes, true)
                 .setHandleAudioBecomingNoisy(true)
-                .setWakeMode(C.WAKE_MODE_LOCAL)
+                .setWakeMode(C.WAKE_MODE_NETWORK)
                 .build();
 
         // Restore playback settings
@@ -143,11 +158,26 @@ public class PlaybackService extends MediaSessionService {
         // Connect Sleep Timer Listener
         SleepTimerManager.getInstance().setListener(this::pause);
 
-        // Player Event Listener
+        // Player Event Listener for seamless gapless playback and auto-next
         player.addListener(new Player.Listener() {
             @Override
             public void onIsPlayingChanged(boolean isPlaying) {
                 isPlayingLive.postValue(isPlaying);
+            }
+
+            @Override
+            public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
+                int index = player.getCurrentMediaItemIndex();
+                if (index >= 0 && index < songQueue.size()) {
+                    currentQueueIndex = index;
+                    currentQueueIndexLive.postValue(currentQueueIndex);
+                    Song currentSong = songQueue.get(currentQueueIndex);
+                    currentSongLive.postValue(currentSong);
+                    playbackRetryCount = 0;
+                    if (currentSong != null) {
+                        musicRepository.recordPlayback(currentSong, player.getDuration());
+                    }
+                }
             }
 
             @Override
@@ -159,15 +189,26 @@ public class PlaybackService extends MediaSessionService {
                     if (hasSong()) {
                         musicRepository.recordPlayback(songQueue.get(currentQueueIndex), player.getDuration());
                     }
-                    playNext();
+                    if (player.getRepeatMode() == Player.REPEAT_MODE_ALL && !songQueue.isEmpty()) {
+                        player.seekTo(0, 0);
+                        player.play();
+                    } else if (currentQueueIndex + 1 < songQueue.size()) {
+                        playNext();
+                    }
                 }
             }
 
             @Override
             public void onPlayerError(@NonNull PlaybackException error) {
-                if (hasSong() && playbackRetryCount < 2) {
+                error.printStackTrace();
+                if (hasSong() && playbackRetryCount < 1) {
                     playbackRetryCount++;
-                    playCurrentIndex();
+                    player.prepare();
+                    player.play();
+                } else {
+                    // Automatically skip problematic song so queue playback continues seamlessly
+                    playbackRetryCount = 0;
+                    playNext();
                 }
             }
 
@@ -191,6 +232,26 @@ public class PlaybackService extends MediaSessionService {
         return binder;
     }
 
+    private MediaItem createMediaItem(Song song) {
+        if (song == null) return null;
+        String uriString = song.getPlayableUri();
+        if (uriString == null || uriString.isEmpty()) return null;
+
+        MediaMetadata metadata = new MediaMetadata.Builder()
+                .setTitle(song.getTitle())
+                .setArtist(song.getArtist())
+                .setAlbumTitle(song.getAlbum())
+                .setArtworkUri(song.getArtUrl() != null ? Uri.parse(song.getArtUrl()) : null)
+                .build();
+
+        return new MediaItem.Builder()
+                .setUri(Uri.parse(uriString))
+                .setMediaId(String.valueOf(song.getId()))
+                .setTag(song)
+                .setMediaMetadata(metadata)
+                .build();
+    }
+
     public void playSongList(List<Song> songs, int startIndex) {
         if (songs == null || songs.isEmpty()) return;
 
@@ -206,7 +267,24 @@ public class PlaybackService extends MediaSessionService {
         currentQueueIndexLive.postValue(currentQueueIndex);
         playbackRetryCount = 0;
 
-        playCurrentIndex();
+        List<MediaItem> mediaItems = new ArrayList<>();
+        for (Song s : songs) {
+            MediaItem mi = createMediaItem(s);
+            if (mi != null) {
+                mediaItems.add(mi);
+            }
+        }
+
+        if (!mediaItems.isEmpty() && player != null) {
+            int validStartIndex = Math.min(startIndex, mediaItems.size() - 1);
+            player.setMediaItems(mediaItems, validStartIndex, 0);
+            player.prepare();
+            player.play();
+            isPlayingLive.postValue(true);
+
+            Song currentSong = songQueue.get(currentQueueIndex);
+            currentSongLive.postValue(currentSong);
+        }
     }
 
     public void playSong(Song song) {
@@ -216,38 +294,8 @@ public class PlaybackService extends MediaSessionService {
         playSongList(singleList, 0);
     }
 
-    private void playCurrentIndex() {
-        if (currentQueueIndex >= 0 && currentQueueIndex < songQueue.size()) {
-            Song song = songQueue.get(currentQueueIndex);
-            currentSongLive.postValue(song);
-
-            String uriString = song.getPlayableUri();
-            playWithUrl(song, uriString);
-        }
-    }
-
-    private void playWithUrl(Song song, String uriString) {
-        if (uriString != null && !uriString.isEmpty()) {
-            MediaMetadata metadata = new MediaMetadata.Builder()
-                    .setTitle(song.getTitle())
-                    .setArtist(song.getArtist())
-                    .setAlbumTitle(song.getAlbum())
-                    .setArtworkUri(song.getArtUrl() != null ? Uri.parse(song.getArtUrl()) : null)
-                    .build();
-
-            MediaItem mediaItem = new MediaItem.Builder()
-                    .setUri(Uri.parse(uriString))
-                    .setMediaMetadata(metadata)
-                    .build();
-
-            player.setMediaItem(mediaItem);
-            player.prepare();
-            player.play();
-            isPlayingLive.postValue(true);
-        }
-    }
-
     public void togglePlayPause() {
+        if (player == null) return;
         if (player.isPlaying()) {
             player.pause();
         } else {
@@ -256,15 +304,19 @@ public class PlaybackService extends MediaSessionService {
     }
 
     public void play() {
-        player.play();
+        if (player != null) {
+            player.play();
+        }
     }
 
     public void pause() {
-        player.pause();
+        if (player != null) {
+            player.pause();
+        }
     }
 
     public void playNext() {
-        if (songQueue.isEmpty()) return;
+        if (player == null || songQueue.isEmpty()) return;
 
         if (player.getRepeatMode() == Player.REPEAT_MODE_ONE) {
             player.seekTo(0);
@@ -272,39 +324,43 @@ public class PlaybackService extends MediaSessionService {
             return;
         }
 
-        if (currentQueueIndex + 1 < songQueue.size()) {
+        if (player.hasNextMediaItem()) {
+            player.seekToNextMediaItem();
+            player.play();
+        } else if (player.getRepeatMode() == Player.REPEAT_MODE_ALL && !songQueue.isEmpty()) {
+            player.seekToDefaultPosition(0);
+            player.play();
+        } else if (currentQueueIndex + 1 < songQueue.size()) {
             currentQueueIndex++;
             currentQueueIndexLive.postValue(currentQueueIndex);
-            playbackRetryCount = 0;
-            playCurrentIndex();
-        } else if (player.getRepeatMode() == Player.REPEAT_MODE_ALL) {
-            currentQueueIndex = 0;
-            currentQueueIndexLive.postValue(currentQueueIndex);
-            playbackRetryCount = 0;
-            playCurrentIndex();
+            playSongList(songQueue, currentQueueIndex);
         }
     }
 
     public void playPrevious() {
-        if (songQueue.isEmpty()) return;
+        if (player == null || songQueue.isEmpty()) return;
 
         if (player.getCurrentPosition() > 3000) {
             player.seekTo(0);
             return;
         }
 
-        if (currentQueueIndex - 1 >= 0) {
+        if (player.hasPreviousMediaItem()) {
+            player.seekToPreviousMediaItem();
+            player.play();
+        } else if (currentQueueIndex - 1 >= 0) {
             currentQueueIndex--;
             currentQueueIndexLive.postValue(currentQueueIndex);
-            playbackRetryCount = 0;
-            playCurrentIndex();
+            playSongList(songQueue, currentQueueIndex);
         } else {
             player.seekTo(0);
         }
     }
 
     public void seekTo(long positionMs) {
-        player.seekTo(positionMs);
+        if (player != null) {
+            player.seekTo(positionMs);
+        }
     }
 
     public long getCurrentPosition() {
@@ -316,6 +372,7 @@ public class PlaybackService extends MediaSessionService {
     }
 
     public void toggleShuffle() {
+        if (player == null) return;
         boolean newShuffle = !player.getShuffleModeEnabled();
         player.setShuffleModeEnabled(newShuffle);
         shuffleModeLive.postValue(newShuffle);
@@ -323,6 +380,7 @@ public class PlaybackService extends MediaSessionService {
     }
 
     public void toggleRepeatMode() {
+        if (player == null) return;
         int nextMode;
         int current = player.getRepeatMode();
         if (current == Player.REPEAT_MODE_OFF) {
@@ -338,6 +396,7 @@ public class PlaybackService extends MediaSessionService {
     }
 
     public void setPlaybackSpeed(float speed) {
+        if (player == null) return;
         player.setPlaybackParameters(new PlaybackParameters(speed));
         playbackSpeedLive.postValue(speed);
         prefs.edit().putFloat(Constants.KEY_PLAYBACK_SPEED, speed).apply();
@@ -346,15 +405,20 @@ public class PlaybackService extends MediaSessionService {
     public void addToQueue(Song song) {
         if (song == null) return;
         songQueue.add(song);
+        MediaItem mi = createMediaItem(song);
+        if (mi != null && player != null) {
+            player.addMediaItem(mi);
+        }
         queueLive.postValue(new ArrayList<>(songQueue));
     }
 
     public void playNextInQueue(Song song) {
         if (song == null) return;
-        if (currentQueueIndex >= 0 && currentQueueIndex < songQueue.size()) {
-            songQueue.add(currentQueueIndex + 1, song);
-        } else {
-            songQueue.add(song);
+        int nextIndex = (currentQueueIndex >= 0 && currentQueueIndex < songQueue.size()) ? currentQueueIndex + 1 : songQueue.size();
+        songQueue.add(nextIndex, song);
+        MediaItem mi = createMediaItem(song);
+        if (mi != null && player != null) {
+            player.addMediaItem(nextIndex, mi);
         }
         queueLive.postValue(new ArrayList<>(songQueue));
     }
@@ -362,14 +426,15 @@ public class PlaybackService extends MediaSessionService {
     public void removeFromQueue(int position) {
         if (position >= 0 && position < songQueue.size()) {
             songQueue.remove(position);
+            if (player != null && position < player.getMediaItemCount()) {
+                player.removeMediaItem(position);
+            }
             if (position < currentQueueIndex) {
                 currentQueueIndex--;
             } else if (position == currentQueueIndex && !songQueue.isEmpty()) {
                 if (currentQueueIndex >= songQueue.size()) {
                     currentQueueIndex = 0;
                 }
-                playbackRetryCount = 0;
-                playCurrentIndex();
             }
             queueLive.postValue(new ArrayList<>(songQueue));
             currentQueueIndexLive.postValue(currentQueueIndex);
@@ -381,7 +446,10 @@ public class PlaybackService extends MediaSessionService {
         currentQueueIndex = -1;
         queueLive.postValue(new ArrayList<>());
         currentQueueIndexLive.postValue(-1);
-        player.stop();
+        if (player != null) {
+            player.clearMediaItems();
+            player.stop();
+        }
         currentSongLive.postValue(null);
     }
 
@@ -410,3 +478,4 @@ public class PlaybackService extends MediaSessionService {
         super.onDestroy();
     }
 }
+

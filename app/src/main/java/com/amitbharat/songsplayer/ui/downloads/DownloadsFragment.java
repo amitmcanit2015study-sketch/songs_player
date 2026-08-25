@@ -86,27 +86,42 @@ public class DownloadsFragment extends Fragment implements DownloadAdapter.OnDow
     @Override
     public void onDownloadClick(DownloadItem item) {
         if (item.getStatus() == DownloadItem.Status.COMPLETED && item.getLocalPath() != null) {
-            File file = new File(item.getLocalPath());
-            if (file.exists()) {
-                Song song = new Song(
-                        item.getSongId(),
-                        item.getTitle(),
-                        item.getArtist(),
-                        "Downloaded",
-                        0,
-                        0,
-                        item.getLocalPath(),
-                        false,
-                        null,
-                        item.getArtUrl(),
-                        false,
-                        0,
-                        item.getDownloadDate(),
-                        item.getTotalBytes()
-                );
-                if (getActivity() instanceof MainActivity) {
-                    ((MainActivity) getActivity()).playSong(song);
+            List<DownloadItem> allDownloads = viewModel.getAllDownloads().getValue();
+            List<Song> downloadedSongs = new ArrayList<>();
+            int targetIndex = 0;
+
+            if (allDownloads != null) {
+                for (DownloadItem di : allDownloads) {
+                    if (di.getStatus() == DownloadItem.Status.COMPLETED && di.getLocalPath() != null) {
+                        File f = new File(di.getLocalPath());
+                        if (f.exists()) {
+                            Song s = new Song(
+                                    di.getSongId(),
+                                    di.getTitle(),
+                                    di.getArtist(),
+                                    "Downloaded",
+                                    0,
+                                    0,
+                                    di.getLocalPath(),
+                                    false,
+                                    null,
+                                    di.getArtUrl(),
+                                    false,
+                                    0,
+                                    di.getDownloadDate(),
+                                    di.getTotalBytes()
+                            );
+                            if (di.getSongId() == item.getSongId()) {
+                                targetIndex = downloadedSongs.size();
+                            }
+                            downloadedSongs.add(s);
+                        }
+                    }
                 }
+            }
+
+            if (!downloadedSongs.isEmpty() && getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).playSongList(downloadedSongs, targetIndex);
             }
         }
     }
