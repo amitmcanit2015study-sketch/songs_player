@@ -15,6 +15,11 @@
 -keep class * extends androidx.room.RoomDatabase
 -dontwarn androidx.room.paging.**
 
+# Data Models & Entities Preservation for R8/ProGuard
+-keep class com.amitbharat.songsplayer.data.model.** { *; }
+-keep class com.amitbharat.songsplayer.data.local.entity.** { *; }
+-keep class com.amitbharat.songsplayer.data.remote.** { *; }
+
 # Glide Proguard Rules
 -keep public class * implements com.github.bumptech.glide.module.GlideModule
 -keep class * extends com.github.bumptech.glide.module.AppGlideModule {
