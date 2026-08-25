@@ -34,7 +34,7 @@ public class AboutActivity extends AppCompatActivity {
         // Send Feedback Button
         binding.btnSendFeedback.setOnClickListener(v -> {
             Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
-            emailIntent.setData(Uri.parse("mailto:roayssofttech2020@gmail.com"));
+            emailIntent.setData(Uri.parse("mailto:rooyssofttech2020@gmail.com"));
             emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Songs Player Feedback & Inquiry");
             try {
                 startActivity(Intent.createChooser(emailIntent, "Send Feedback"));

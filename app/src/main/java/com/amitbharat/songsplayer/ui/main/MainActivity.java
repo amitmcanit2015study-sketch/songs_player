@@ -131,6 +131,9 @@ public class MainActivity extends AppCompatActivity {
             if (id == R.id.nav_online) {
                 loadFragment(new OnlineFragment(), false);
                 return true;
+            } else if (id == R.id.nav_artists) {
+                loadFragment(new com.amitbharat.songsplayer.ui.artists.ArtistsFragment(), false);
+                return true;
             } else if (id == R.id.nav_offline) {
                 loadFragment(new OfflineFragment(), false);
                 return true;

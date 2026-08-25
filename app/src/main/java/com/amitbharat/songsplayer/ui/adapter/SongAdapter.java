@@ -1,6 +1,7 @@
 package com.amitbharat.songsplayer.ui.adapter;
 
 import android.content.Context;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,10 +29,18 @@ public class SongAdapter extends ListAdapter<Song, SongAdapter.SongViewHolder> {
     }
 
     private final OnSongClickListener listener;
+    private Song currentlyPlayingSong = null;
+    private boolean isPlaying = false;
 
     public SongAdapter(OnSongClickListener listener) {
         super(DIFF_CALLBACK);
         this.listener = listener;
+    }
+
+    public void setPlayingState(Song song, boolean isPlaying) {
+        this.currentlyPlayingSong = song;
+        this.isPlaying = isPlaying;
+        notifyDataSetChanged();
     }
 
     private static final DiffUtil.ItemCallback<Song> DIFF_CALLBACK = new DiffUtil.ItemCallback<Song>() {
@@ -57,11 +67,15 @@ public class SongAdapter extends ListAdapter<Song, SongAdapter.SongViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull SongViewHolder holder, int position) {
         Song song = getItem(position);
-        holder.bind(song, listener, position);
+        boolean isThisSongActive = currentlyPlayingSong != null &&
+                (currentlyPlayingSong.getId() == song.getId() ||
+                 (currentlyPlayingSong.getTitle() != null && currentlyPlayingSong.getTitle().equalsIgnoreCase(song.getTitle())));
+        holder.bind(song, listener, position, isThisSongActive, isPlaying);
     }
 
     static class SongViewHolder extends RecyclerView.ViewHolder {
         private final ImageView ivThumbnail;
+        private final ImageView ivPlayingIndicator;
         private final TextView tvDurationBadge;
         private final TextView tvTitle;
         private final TextView tvSubtitle;
@@ -71,6 +85,7 @@ public class SongAdapter extends ListAdapter<Song, SongAdapter.SongViewHolder> {
         public SongViewHolder(@NonNull View itemView) {
             super(itemView);
             ivThumbnail = itemView.findViewById(R.id.iv_song_thumbnail);
+            ivPlayingIndicator = itemView.findViewById(R.id.iv_playing_indicator);
             tvDurationBadge = itemView.findViewById(R.id.tv_duration_badge);
             tvTitle = itemView.findViewById(R.id.tv_song_title);
             tvSubtitle = itemView.findViewById(R.id.tv_song_subtitle);
@@ -78,12 +93,12 @@ public class SongAdapter extends ListAdapter<Song, SongAdapter.SongViewHolder> {
             btnMore = itemView.findViewById(R.id.btn_song_more);
         }
 
-        public void bind(Song song, OnSongClickListener listener, int position) {
+        public void bind(Song song, OnSongClickListener listener, int position, boolean isActive, boolean isPlaying) {
             Context context = itemView.getContext();
 
             tvTitle.setText(song.getTitle());
             String duration = FormatUtils.formatDuration(song.getDuration());
-            
+
             if (tvDurationBadge != null) {
                 if (song.getDuration() > 0) {
                     tvDurationBadge.setText(duration);
@@ -95,6 +110,22 @@ public class SongAdapter extends ListAdapter<Song, SongAdapter.SongViewHolder> {
 
             String views = song.getPlayCount() > 0 ? (song.getPlayCount() >= 1000 ? (song.getPlayCount() / 1000) + "K views" : song.getPlayCount() + " views") : "Official Stream";
             tvSubtitle.setText(String.format("%s • %s", song.getArtist(), views));
+
+            // Highlight currently playing track
+            if (isActive) {
+                tvTitle.setTextColor(ContextCompat.getColor(context, R.color.primary));
+                if (ivPlayingIndicator != null) {
+                    ivPlayingIndicator.setVisibility(View.VISIBLE);
+                    ivPlayingIndicator.setImageResource(isPlaying ? R.drawable.ic_volume_up : R.drawable.ic_play);
+                }
+            } else {
+                TypedValue typedValue = new TypedValue();
+                context.getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedValue, true);
+                tvTitle.setTextColor(typedValue.data != 0 ? typedValue.data : ContextCompat.getColor(context, R.color.on_surface_dark));
+                if (ivPlayingIndicator != null) {
+                    ivPlayingIndicator.setVisibility(View.GONE);
+                }
+            }
 
             // Load album art
             ImageLoader.loadAlbumArt(context, song.getAlbumId(), song.getArtUrl(), ivThumbnail);

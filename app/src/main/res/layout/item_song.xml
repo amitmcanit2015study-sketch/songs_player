@@ -34,6 +34,20 @@
                 android:scaleType="centerCrop"
                 android:src="@drawable/bg_album_placeholder" />
 
+            <!-- Active Playing Indicator Overlay in top-start corner -->
+            <ImageView
+                android:id="@+id/iv_playing_indicator"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="top|start"
+                android:layout_margin="4dp"
+                android:background="@drawable/bg_circle_icon"
+                android:backgroundTint="@color/primary"
+                android:padding="3dp"
+                android:src="@drawable/ic_volume_up"
+                android:visibility="gone"
+                app:tint="#FFFFFF" />
+
             <!-- Duration Badge Overlay in bottom-right corner -->
             <TextView
                 android:id="@+id/tv_duration_badge"

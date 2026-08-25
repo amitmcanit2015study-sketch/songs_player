@@ -5,6 +5,10 @@
         android:icon="@drawable/ic_online"
         android:title="Online" />
     <item
+        android:id="@+id/nav_artists"
+        android:icon="@drawable/ic_artist"
+        android:title="Artists" />
+    <item
         android:id="@+id/nav_offline"
         android:icon="@drawable/ic_download"
         android:title="Downloads" />

@@ -82,6 +82,12 @@
             android:exported="false"
             android:theme="@style/Theme.SongsPlayer" />
 
+        <!-- Artist Detail Activity -->
+        <activity
+            android:name=".ui.artists.ArtistDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SongsPlayer" />
+
         <!-- Settings Activity -->
         <activity
             android:name=".ui.settings.SettingsActivity"

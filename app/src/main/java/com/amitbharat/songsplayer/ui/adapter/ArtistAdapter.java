@@ -71,8 +71,16 @@ public class ArtistAdapter extends RecyclerView.Adapter<ArtistAdapter.ArtistView
         public void bind(Artist artist, OnArtistClickListener listener) {
             Context context = itemView.getContext();
             tvName.setText(artist.getName());
-            tvTracksCount.setText(String.format("%d tracks", artist.getTrackCount()));
-            ImageLoader.loadAlbumArt(context, 0, null, ivImage);
+            
+            if (artist.getGenre() != null && !artist.getGenre().isEmpty() && !artist.getGenre().equals("Artist")) {
+                tvTracksCount.setText(String.format("%s • %d songs", artist.getGenre(), artist.getTrackCount()));
+            } else if (artist.getTrackCount() > 0) {
+                tvTracksCount.setText(String.format("%d songs", artist.getTrackCount()));
+            } else {
+                tvTracksCount.setText("Popular Artist");
+            }
+
+            ImageLoader.loadAlbumArt(context, 0, artist.getImageUrl(), ivImage);
 
             itemView.setOnClickListener(v -> {
                 if (listener != null) listener.onArtistClick(artist);

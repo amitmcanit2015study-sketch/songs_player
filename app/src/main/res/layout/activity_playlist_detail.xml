@@ -87,4 +87,17 @@
         app:layout_anchor="@id/app_bar_layout"
         app:layout_anchorGravity="bottom|end" />
 
+    <!-- Floating Mini Player at Bottom -->
+    <FrameLayout
+        android:id="@+id/mini_player_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:visibility="gone">
+
+        <include
+            android:id="@+id/mini_player_layout"
+            layout="@layout/layout_mini_player" />
+    </FrameLayout>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

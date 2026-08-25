@@ -1,4 +1,4 @@
-package com.amitbharat.songsplayer.ui.playlist;
+package com.amitbharat.songsplayer.ui.artists;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -16,32 +16,31 @@ import androidx.appcompat.widget.PopupMenu;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.amitbharat.songsplayer.R;
+import com.amitbharat.songsplayer.data.model.Artist;
 import com.amitbharat.songsplayer.data.model.Song;
-import com.amitbharat.songsplayer.databinding.ActivityPlaylistDetailBinding;
+import com.amitbharat.songsplayer.data.remote.UniversalStreamEngine;
+import com.amitbharat.songsplayer.databinding.ActivityArtistDetailBinding;
 import com.amitbharat.songsplayer.service.PlaybackService;
 import com.amitbharat.songsplayer.ui.adapter.SongAdapter;
 import com.amitbharat.songsplayer.ui.player.FullPlayerActivity;
 import com.amitbharat.songsplayer.ui.viewmodel.DownloadViewModel;
 import com.amitbharat.songsplayer.ui.viewmodel.MainViewModel;
-import com.amitbharat.songsplayer.ui.viewmodel.PlaylistViewModel;
-import com.amitbharat.songsplayer.utils.Constants;
 import com.amitbharat.songsplayer.utils.ImageLoader;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public class PlaylistDetailActivity extends AppCompatActivity implements SongAdapter.OnSongClickListener {
+public class ArtistDetailActivity extends AppCompatActivity implements SongAdapter.OnSongClickListener {
 
-    private ActivityPlaylistDetailBinding binding;
-    private PlaylistViewModel playlistViewModel;
+    private ActivityArtistDetailBinding binding;
     private MainViewModel mainViewModel;
     private DownloadViewModel downloadViewModel;
     private SongAdapter songAdapter;
     private PlaybackService playbackService;
     private boolean isBound = false;
-    private final List<Song> playlistSongs = new ArrayList<>();
-    private long playlistId;
-    private String playlistName;
+    private final List<Song> artistSongs = new ArrayList<>();
+    private Artist artist;
 
     private final Handler progressHandler = new Handler(Looper.getMainLooper());
     private final Runnable progressRunnable = new Runnable() {
@@ -77,31 +76,51 @@ public class PlaylistDetailActivity extends AppCompatActivity implements SongAda
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityPlaylistDetailBinding.inflate(getLayoutInflater());
+        binding = ActivityArtistDetailBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        playlistId = getIntent().getLongExtra(Constants.EXTRA_PLAYLIST_ID, 0);
-        playlistName = getIntent().getStringExtra(Constants.EXTRA_PLAYLIST_NAME);
+        artist = (Artist) getIntent().getSerializableExtra("artist");
+        if (artist == null) {
+            finish();
+            return;
+        }
 
-        playlistViewModel = new ViewModelProvider(this).get(PlaylistViewModel.class);
         mainViewModel = new ViewModelProvider(this).get(MainViewModel.class);
         downloadViewModel = new ViewModelProvider(this).get(DownloadViewModel.class);
 
         Intent serviceIntent = new Intent(this, PlaybackService.class);
         bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE);
 
-        binding.tvPlaylistTitle.setText(playlistName != null ? playlistName : "Playlist");
-        binding.toolbarPlaylistDetail.setNavigationOnClickListener(v -> finish());
+        setupViews();
+        setupMiniPlayer();
+        loadArtistSongs();
+    }
+
+    private void setupViews() {
+        binding.toolbarArtistDetail.setNavigationOnClickListener(v -> finish());
+        binding.tvArtistDetailName.setText(artist.getName());
+        binding.tvArtistDetailInfo.setText(String.format("%s • Loading songs...", artist.getGenre() != null ? artist.getGenre() : "Artist"));
+
+        ImageLoader.loadAlbumArt(this, 0, artist.getImageUrl(), binding.ivArtistDetailArt);
 
         songAdapter = new SongAdapter(this);
-        binding.rvPlaylistSongs.setAdapter(songAdapter);
+        binding.rvArtistSongs.setAdapter(songAdapter);
 
-        setupMiniPlayer();
-        loadSongs();
+        binding.btnArtistPlayAll.setOnClickListener(v -> {
+            if (playbackService != null && !artistSongs.isEmpty()) {
+                playbackService.playSongList(artistSongs, 0);
+            } else if (artistSongs.isEmpty()) {
+                Toast.makeText(this, "No songs available to play", Toast.LENGTH_SHORT).show();
+            }
+        });
 
-        binding.fabPlayAll.setOnClickListener(v -> {
-            if (playbackService != null && !playlistSongs.isEmpty()) {
-                playbackService.playSongList(playlistSongs, 0);
+        binding.btnArtistShuffle.setOnClickListener(v -> {
+            if (playbackService != null && !artistSongs.isEmpty()) {
+                List<Song> shuffled = new ArrayList<>(artistSongs);
+                Collections.shuffle(shuffled);
+                playbackService.playSongList(shuffled, 0);
+            } else if (artistSongs.isEmpty()) {
+                Toast.makeText(this, "No songs available to play", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -179,38 +198,78 @@ public class PlaylistDetailActivity extends AppCompatActivity implements SongAda
         progressHandler.removeCallbacks(progressRunnable);
     }
 
-    private void loadSongs() {
-        if (playlistId == -1) {
-            // Favorites
-            mainViewModel.getFavoriteSongs().observe(this, this::updateSongs);
-        } else if (playlistId == -2) {
-            // Recently Played
-            mainViewModel.getRecentlyPlayedSongs().observe(this, this::updateSongs);
-        } else if (playlistId == -3) {
-            // Most Played
-            mainViewModel.getMostPlayedSongs().observe(this, this::updateSongs);
-        } else if (playlistId == -4) {
-            // Recently Added
-            mainViewModel.getRecentlyAddedSongs().observe(this, this::updateSongs);
-        } else {
-            // Custom Playlist
-            playlistViewModel.getSongsForPlaylist(playlistId).observe(this, this::updateSongs);
-        }
+    private void loadArtistSongs() {
+        binding.progressLoadingArtistSongs.setVisibility(View.VISIBLE);
+        binding.tvEmptyArtistSongs.setVisibility(View.GONE);
+
+        // 1. First look for local scanned songs by this artist
+        mainViewModel.getAllSongs().observe(this, allSongs -> {
+            if (allSongs != null) {
+                for (Song s : allSongs) {
+                    if (s.getArtist() != null && s.getArtist().toLowerCase().contains(artist.getName().toLowerCase())) {
+                        boolean exists = false;
+                        for (Song existing : artistSongs) {
+                            if (existing.getId() == s.getId() || existing.getTitle().equalsIgnoreCase(s.getTitle())) {
+                                exists = true;
+                                break;
+                            }
+                        }
+                        if (!exists) {
+                            artistSongs.add(s);
+                        }
+                    }
+                }
+                songAdapter.submitList(new ArrayList<>(artistSongs));
+                updateHeaderInfo();
+            }
+        });
+
+        // 2. Fetch rich online songs catalogue for this artist
+        UniversalStreamEngine.searchMusic(artist.getName(), 1, onlineSongs -> {
+            runOnUiThread(() -> {
+                binding.progressLoadingArtistSongs.setVisibility(View.GONE);
+                if (onlineSongs != null && !onlineSongs.isEmpty()) {
+                    for (Song s : onlineSongs) {
+                        boolean exists = false;
+                        for (Song existing : artistSongs) {
+                            if (existing.getTitle().equalsIgnoreCase(s.getTitle())) {
+                                exists = true;
+                                break;
+                            }
+                        }
+                        if (!exists) {
+                            artistSongs.add(s);
+                        }
+                    }
+
+                    // Fallback to top track's artwork for artist avatar if artist photo failed
+                    if (artist.getImageUrl() == null || artist.getImageUrl().isEmpty()) {
+                        ImageLoader.loadAlbumArt(this, 0, onlineSongs.get(0).getArtUrl(), binding.ivArtistDetailArt);
+                    }
+                }
+
+                songAdapter.submitList(new ArrayList<>(artistSongs));
+                updateHeaderInfo();
+
+                if (artistSongs.isEmpty()) {
+                    binding.tvEmptyArtistSongs.setVisibility(View.VISIBLE);
+                } else {
+                    binding.tvEmptyArtistSongs.setVisibility(View.GONE);
+                }
+            });
+        });
     }
 
-    private void updateSongs(List<Song> songs) {
-        playlistSongs.clear();
-        if (songs != null) {
-            playlistSongs.addAll(songs);
-        }
-        songAdapter.submitList(new ArrayList<>(playlistSongs));
-        binding.tvPlaylistSongCount.setText(String.format("%d songs", playlistSongs.size()));
+    private void updateHeaderInfo() {
+        String genre = artist.getGenre() != null ? artist.getGenre() : "Artist";
+        binding.tvArtistDetailInfo.setText(String.format("%s • %d songs", genre, artistSongs.size()));
     }
 
     @Override
     public void onSongClick(Song song, int position) {
-        if (playbackService != null && !playlistSongs.isEmpty()) {
-            playbackService.playSongList(playlistSongs, position);
+        if (playbackService != null && !artistSongs.isEmpty()) {
+            // Plays clicked song and queues all artist tracks in sequence
+            playbackService.playSongList(artistSongs, position);
         }
     }
 

@@ -286,6 +286,17 @@ public class OnlineFragment extends Fragment implements SongAdapter.OnSongClickL
                 binding.tvEmptyOnline.setVisibility(View.VISIBLE);
             }
         });
+
+        // Observe Current Song & Playing state to highlight active track
+        com.amitbharat.songsplayer.service.PlaybackService.getCurrentSongLive().observe(getViewLifecycleOwner(), song -> {
+            Boolean isPlaying = com.amitbharat.songsplayer.service.PlaybackService.getIsPlayingLive().getValue();
+            songAdapter.setPlayingState(song, isPlaying != null && isPlaying);
+        });
+
+        com.amitbharat.songsplayer.service.PlaybackService.getIsPlayingLive().observe(getViewLifecycleOwner(), isPlaying -> {
+            Song song = com.amitbharat.songsplayer.service.PlaybackService.getCurrentSongLive().getValue();
+            songAdapter.setPlayingState(song, isPlaying != null && isPlaying);
+        });
     }
 
     @Override

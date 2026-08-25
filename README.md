@@ -1,8 +1,8 @@
 # 🎵 Songs Player by Amit Bharat
 
 > **Modern Online & Offline Android Music Streaming and Playback Application**  
-> Developed with ❤️ by **Amit Bharat** | **Roays Soft Tech**  
-> Email: `roayssofttech2020@gmail.com`
+> Developed with ❤️ by **Amit Bharat** | **Rooys Soft Tech**  
+> Email: `rooyssofttech2020@gmail.com`
 
 ---
 
