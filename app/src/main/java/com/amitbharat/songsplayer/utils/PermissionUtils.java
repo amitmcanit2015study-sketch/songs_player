@@ -36,18 +36,22 @@ public final class PermissionUtils {
     }
 
     /**
-     * Returns the appropriate audio permission array for request
+     * Returns all permissions that are not yet granted
      */
-    public static String[] getRequiredAudioPermissions() {
+    public static String[] getRequiredPermissions(Context context) {
+        java.util.List<String> list = new java.util.ArrayList<>();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            return new String[]{
-                    Manifest.permission.READ_MEDIA_AUDIO,
-                    Manifest.permission.POST_NOTIFICATIONS
-            };
+            if (!hasAudioPermission(context)) {
+                list.add(Manifest.permission.READ_MEDIA_AUDIO);
+            }
+            if (!hasNotificationPermission(context)) {
+                list.add(Manifest.permission.POST_NOTIFICATIONS);
+            }
         } else {
-            return new String[]{
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-            };
+            if (!hasAudioPermission(context)) {
+                list.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+            }
         }
+        return list.toArray(new String[0]);
     }
 }

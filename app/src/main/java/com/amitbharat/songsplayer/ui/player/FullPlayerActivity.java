@@ -96,6 +96,16 @@ public class FullPlayerActivity extends AppCompatActivity {
             popup.show();
         });
 
+        binding.btnPlayerFavorite.setOnClickListener(v -> {
+            Song currentSong = PlaybackService.getCurrentSongLive().getValue();
+            if (currentSong != null) {
+                boolean newFav = !currentSong.isFavorite();
+                currentSong.setFavorite(newFav);
+                binding.btnPlayerFavorite.setImageResource(newFav ? R.drawable.ic_favorite : R.drawable.ic_favorite_border);
+                new com.amitbharat.songsplayer.data.repository.MusicRepository(getApplication()).toggleFavorite(currentSong);
+            }
+        });
+
         binding.fabPlayerPlayPause.setOnClickListener(v -> {
             if (playbackService != null) {
                 playbackService.togglePlayPause();

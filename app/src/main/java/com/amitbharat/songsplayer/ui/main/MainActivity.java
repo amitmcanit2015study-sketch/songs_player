@@ -88,8 +88,9 @@ public class MainActivity extends AppCompatActivity {
         bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 
         // Check & request permissions
-        if (!PermissionUtils.hasAudioPermission(this) || !PermissionUtils.hasNotificationPermission(this)) {
-            permissionLauncher.launch(PermissionUtils.getRequiredAudioPermissions());
+        String[] required = PermissionUtils.getRequiredPermissions(this);
+        if (required.length > 0) {
+            permissionLauncher.launch(required);
         } else {
             viewModel.scanLocalMedia();
         }

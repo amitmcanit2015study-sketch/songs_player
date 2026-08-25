@@ -34,15 +34,17 @@ public class SongsPlayerApp extends Application {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             if (manager != null) {
-                // Playback notification channel (Low importance to avoid sound on update)
+                // Playback notification channel with public lockscreen visibility
                 NotificationChannel playbackChannel = new NotificationChannel(
                         PLAYBACK_CHANNEL_ID,
                         "Music Playback",
                         NotificationManager.IMPORTANCE_LOW
                 );
                 playbackChannel.setDescription("Shows active playback controls and song info");
-                playbackChannel.setShowBadge(false);
+                playbackChannel.setShowBadge(true);
                 playbackChannel.setLockscreenVisibility(android.app.Notification.VISIBILITY_PUBLIC);
+                playbackChannel.setSound(null, null);
+                playbackChannel.enableVibration(false);
                 manager.createNotificationChannel(playbackChannel);
 
                 // Download notification channel
@@ -53,6 +55,7 @@ public class SongsPlayerApp extends Application {
                 );
                 downloadChannel.setDescription("Shows background song download progress");
                 downloadChannel.setShowBadge(false);
+                downloadChannel.setSound(null, null);
                 manager.createNotificationChannel(downloadChannel);
             }
         }

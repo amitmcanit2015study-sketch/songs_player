@@ -1,5 +1,7 @@
 package com.amitbharat.songsplayer.service;
 
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -11,6 +13,7 @@ import android.os.IBinder;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
+import androidx.core.app.NotificationCompat;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.media3.common.AudioAttributes;
@@ -25,19 +28,29 @@ import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
+import androidx.media3.session.CommandButton;
+import androidx.media3.session.MediaNotification;
 import androidx.media3.session.MediaSession;
 import androidx.media3.session.MediaSessionService;
 
 import com.amitbharat.songsplayer.R;
+import com.amitbharat.songsplayer.SongsPlayerApp;
 import com.amitbharat.songsplayer.data.model.Song;
 import com.amitbharat.songsplayer.data.repository.MusicRepository;
 import com.amitbharat.songsplayer.ui.main.MainActivity;
 import com.amitbharat.songsplayer.utils.Constants;
+import com.google.common.collect.ImmutableList;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class PlaybackService extends MediaSessionService {
+
+    public static final String ACTION_PLAY_PAUSE = "com.amitbharat.songsplayer.ACTION_PLAY_PAUSE";
+    public static final String ACTION_NEXT = "com.amitbharat.songsplayer.ACTION_NEXT";
+    public static final String ACTION_PREVIOUS = "com.amitbharat.songsplayer.ACTION_PREVIOUS";
+    public static final String ACTION_STOP = "com.amitbharat.songsplayer.ACTION_STOP";
+    public static final int NOTIFICATION_ID = 1001;
 
     public class LocalBinder extends Binder {
         public PlaybackService getService() {
@@ -135,7 +148,33 @@ public class PlaybackService extends MediaSessionService {
         shuffleModeLive.postValue(shuffleMode);
         playbackSpeedLive.postValue(speed);
 
-        // Configure MediaSession
+        // Configure MediaSession with explicit player commands for System Media Notification & Lock Screen
+        MediaSession.Callback callback = new MediaSession.Callback() {
+            @NonNull
+            @Override
+            public MediaSession.ConnectionResult onConnect(
+                    @NonNull MediaSession session,
+                    @NonNull MediaSession.ControllerInfo controller) {
+                MediaSession.ConnectionResult connectionResult =
+                        MediaSession.Callback.super.onConnect(session, controller);
+                Player.Commands playerCommands = connectionResult.availablePlayerCommands.buildUpon()
+                        .add(Player.COMMAND_PLAY_PAUSE)
+                        .add(Player.COMMAND_SEEK_TO_NEXT)
+                        .add(Player.COMMAND_SEEK_TO_PREVIOUS)
+                        .add(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
+                        .add(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
+                        .add(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
+                        .add(Player.COMMAND_SET_REPEAT_MODE)
+                        .add(Player.COMMAND_SET_SHUFFLE_MODE)
+                        .add(Player.COMMAND_STOP)
+                        .build();
+                return new MediaSession.ConnectionResult.AcceptedResultBuilder(session)
+                        .setAvailableSessionCommands(connectionResult.availableSessionCommands)
+                        .setAvailablePlayerCommands(playerCommands)
+                        .build();
+            }
+        };
+
         Intent sessionIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 this, 0, sessionIntent,
@@ -144,13 +183,29 @@ public class PlaybackService extends MediaSessionService {
 
         mediaSession = new MediaSession.Builder(this, player)
                 .setSessionActivity(pendingIntent)
+                .setCallback(callback)
                 .build();
 
-        // Configure Media Notification Provider with playback controls
-        setMediaNotificationProvider(new androidx.media3.session.DefaultMediaNotificationProvider.Builder(this)
-                .setChannelId(com.amitbharat.songsplayer.SongsPlayerApp.PLAYBACK_CHANNEL_ID)
-                .setChannelName(R.string.playback_notification_channel_name)
-                .build());
+        // Custom Media Notification Provider ensuring visibility in status bar, notification shade, and lockscreen
+        setMediaNotificationProvider(new MediaNotification.Provider() {
+            @NonNull
+            @Override
+            public MediaNotification createNotification(
+                    @NonNull MediaSession mediaSession,
+                    @NonNull ImmutableList<CommandButton> customLayout,
+                    @NonNull MediaNotification.ActionFactory actionFactory,
+                    @NonNull MediaNotification.Provider.Callback onNotificationChangedCallback) {
+                return new MediaNotification(NOTIFICATION_ID, buildNotification());
+            }
+
+            @Override
+            public boolean handleCustomCommand(
+                    @NonNull MediaSession session,
+                    @NonNull String action,
+                    @NonNull android.os.Bundle extras) {
+                return false;
+            }
+        });
 
         // Attach audio effects to audio session
         audioEffectsManager.attachAudioSession(player.getAudioSessionId());
@@ -163,6 +218,7 @@ public class PlaybackService extends MediaSessionService {
             @Override
             public void onIsPlayingChanged(boolean isPlaying) {
                 isPlayingLive.postValue(isPlaying);
+                updateForegroundNotification();
             }
 
             @Override
@@ -177,6 +233,7 @@ public class PlaybackService extends MediaSessionService {
                     if (currentSong != null) {
                         musicRepository.recordPlayback(currentSong, player.getDuration());
                     }
+                    updateForegroundNotification();
                 }
             }
 
@@ -185,6 +242,7 @@ public class PlaybackService extends MediaSessionService {
                 if (playbackState == Player.STATE_READY) {
                     playbackRetryCount = 0;
                     durationLive.postValue(player.getDuration());
+                    updateForegroundNotification();
                 } else if (playbackState == Player.STATE_ENDED) {
                     if (hasSong()) {
                         musicRepository.recordPlayback(songQueue.get(currentQueueIndex), player.getDuration());
@@ -219,6 +277,75 @@ public class PlaybackService extends MediaSessionService {
         });
     }
 
+    public Notification buildNotification() {
+        Song currentSong = (currentQueueIndex >= 0 && currentQueueIndex < songQueue.size())
+                ? songQueue.get(currentQueueIndex) : null;
+
+        String title = (currentSong != null && currentSong.getTitle() != null)
+                ? currentSong.getTitle() : getString(R.string.app_name);
+        String artist = (currentSong != null && currentSong.getArtist() != null)
+                ? currentSong.getArtist() : "Playing Music";
+        String album = (currentSong != null && currentSong.getAlbum() != null)
+                ? currentSong.getAlbum() : "";
+
+        Intent sessionIntent = new Intent(this, MainActivity.class);
+        sessionIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent contentPendingIntent = PendingIntent.getActivity(
+                this, 0, sessionIntent,
+                PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
+        );
+
+        Intent prevIntent = new Intent(this, PlaybackService.class).setAction(ACTION_PREVIOUS);
+        PendingIntent prevPending = PendingIntent.getService(this, 1, prevIntent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Intent playPauseIntent = new Intent(this, PlaybackService.class).setAction(ACTION_PLAY_PAUSE);
+        PendingIntent playPausePending = PendingIntent.getService(this, 2, playPauseIntent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Intent nextIntent = new Intent(this, PlaybackService.class).setAction(ACTION_NEXT);
+        PendingIntent nextPending = PendingIntent.getService(this, 3, nextIntent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Intent stopIntent = new Intent(this, PlaybackService.class).setAction(ACTION_STOP);
+        PendingIntent stopPending = PendingIntent.getService(this, 4, stopIntent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+
+        boolean isPlaying = player != null && player.isPlaying();
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, SongsPlayerApp.PLAYBACK_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_music_note)
+                .setContentTitle(title)
+                .setContentText(artist)
+                .setSubText(album)
+                .setContentIntent(contentPendingIntent)
+                .setDeleteIntent(stopPending)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setCategory(NotificationCompat.CATEGORY_TRANSPORT)
+                .setOngoing(isPlaying)
+                .setOnlyAlertOnce(true)
+                .setShowWhen(false)
+                .addAction(R.drawable.ic_previous, "Previous", prevPending)
+                .addAction(isPlaying ? R.drawable.ic_pause : R.drawable.ic_play, isPlaying ? "Pause" : "Play", playPausePending)
+                .addAction(R.drawable.ic_next, "Next", nextPending);
+
+        androidx.media.app.NotificationCompat.MediaStyle mediaStyle = new androidx.media.app.NotificationCompat.MediaStyle()
+                .setShowActionsInCompactView(0, 1, 2);
+
+        builder.setStyle(mediaStyle);
+
+        return builder.build();
+    }
+
+    public void updateForegroundNotification() {
+        try {
+            Notification notification = buildNotification();
+            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            if (manager != null) {
+                manager.notify(NOTIFICATION_ID, notification);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @Nullable
     @Override
     public MediaSession onGetSession(@NonNull MediaSession.ControllerInfo controllerInfo) {
@@ -232,16 +359,52 @@ public class PlaybackService extends MediaSessionService {
         return binder;
     }
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent != null && intent.getAction() != null) {
+            String action = intent.getAction();
+            if (ACTION_PLAY_PAUSE.equals(action)) {
+                togglePlayPause();
+            } else if (ACTION_NEXT.equals(action)) {
+                playNext();
+            } else if (ACTION_PREVIOUS.equals(action)) {
+                playPrevious();
+            } else if (ACTION_STOP.equals(action)) {
+                if (player != null) {
+                    player.pause();
+                }
+                stopForeground(STOP_FOREGROUND_REMOVE);
+            }
+        }
+        super.onStartCommand(intent, flags, startId);
+        return START_STICKY;
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        if (player == null || !player.getPlayWhenReady() || player.getMediaItemCount() == 0) {
+            stopForeground(STOP_FOREGROUND_REMOVE);
+            stopSelf();
+        }
+    }
+
     private MediaItem createMediaItem(Song song) {
         if (song == null) return null;
         String uriString = song.getPlayableUri();
         if (uriString == null || uriString.isEmpty()) return null;
 
+        Uri artworkUri = null;
+        if (song.getArtUrl() != null && !song.getArtUrl().trim().isEmpty()) {
+            artworkUri = Uri.parse(song.getArtUrl());
+        } else if (song.getAlbumId() > 0) {
+            artworkUri = Uri.parse("content://media/external/audio/albumart/" + song.getAlbumId());
+        }
+
         MediaMetadata metadata = new MediaMetadata.Builder()
                 .setTitle(song.getTitle())
                 .setArtist(song.getArtist())
                 .setAlbumTitle(song.getAlbum())
-                .setArtworkUri(song.getArtUrl() != null ? Uri.parse(song.getArtUrl()) : null)
+                .setArtworkUri(artworkUri)
                 .build();
 
         return new MediaItem.Builder()
