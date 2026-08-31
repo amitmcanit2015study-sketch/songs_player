@@ -67,5 +67,10 @@ public class SettingsActivity extends AppCompatActivity {
             ImageLoader.clearCache(this);
             Toast.makeText(this, R.string.cache_cleared, Toast.LENGTH_SHORT).show();
         });
+
+        // About App
+        binding.rowAbout.setOnClickListener(v -> {
+            startActivity(new android.content.Intent(this, AboutActivity.class));
+        });
     }
 }

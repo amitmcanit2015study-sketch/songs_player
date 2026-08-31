@@ -2,8 +2,15 @@
 <resources>
     <string name="app_name">Songs Player</string>
     <string name="app_header_title">Songs Player by Amit Bharat</string>
+    <string name="app_header_subtitle">by Amit Bharat</string>
     <string name="developer_name">Amit Bharat</string>
+    <string name="developed_by_full">Developed by: Amit Bharat</string>
+    <string name="company_name">Rooys Soft Tech</string>
+    <string name="company_name_full">Company: Rooys Soft Tech</string>
+    <string name="company_email">rooyssofttech2020@gmail.com</string>
     <string name="app_version">1.0.0</string>
+    <string name="app_version_name">v1.0.0 (Production Build)</string>
+    <string name="action_about">About</string>
 
     <!-- Navigation -->
     <string name="nav_home">Home</string>
@@ -144,7 +151,7 @@
     <string name="cache_cleared">Cache cleared successfully</string>
     
     <string name="about_app">About</string>
-    <string name="about_description">A modern online and offline music player built with Material Design 3 and AndroidX Media3 ExoPlayer.</string>
+    <string name="about_description">Songs Player is a free, ad-free online and offline music player designed for a fast, simple, and seamless audio experience. Easily stream, browse, and manage your songs with a clean interface, smooth performance, and high-fidelity audio at its core.</string>
     <string name="developer_credits">Developed with ❤️ by Amit Bharat</string>
     <string name="open_source_licenses">Open Source Libraries</string>
     
