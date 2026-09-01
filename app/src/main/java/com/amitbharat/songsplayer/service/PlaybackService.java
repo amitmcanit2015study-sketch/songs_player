@@ -224,15 +224,28 @@ public class PlaybackService extends MediaSessionService {
             @Override
             public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
                 int index = player.getCurrentMediaItemIndex();
+                Song currentSong = null;
+                if (mediaItem != null && mediaItem.localConfiguration != null && mediaItem.localConfiguration.tag instanceof Song) {
+                    currentSong = (Song) mediaItem.localConfiguration.tag;
+                } else if (index >= 0 && index < songQueue.size()) {
+                    currentSong = songQueue.get(index);
+                }
+
                 if (index >= 0 && index < songQueue.size()) {
                     currentQueueIndex = index;
+                } else if (currentSong != null) {
+                    int found = songQueue.indexOf(currentSong);
+                    if (found >= 0) currentQueueIndex = found;
+                }
+
+                if (currentQueueIndex >= 0) {
                     currentQueueIndexLive.postValue(currentQueueIndex);
-                    Song currentSong = songQueue.get(currentQueueIndex);
+                }
+
+                if (currentSong != null) {
                     currentSongLive.postValue(currentSong);
                     playbackRetryCount = 0;
-                    if (currentSong != null) {
-                        musicRepository.recordPlayback(currentSong, player.getDuration());
-                    }
+                    musicRepository.recordPlayback(currentSong, player.getDuration());
                     updateForegroundNotification();
                 }
             }
@@ -247,11 +260,25 @@ public class PlaybackService extends MediaSessionService {
                     if (hasSong()) {
                         musicRepository.recordPlayback(songQueue.get(currentQueueIndex), player.getDuration());
                     }
-                    if (player.getRepeatMode() == Player.REPEAT_MODE_ALL && !songQueue.isEmpty()) {
-                        player.seekTo(0, 0);
+                    if (player.getRepeatMode() == Player.REPEAT_MODE_ONE) {
+                        player.seekTo(0);
+                        player.prepare();
+                        player.play();
+                    } else if (player.hasNextMediaItem()) {
+                        player.seekToNextMediaItem();
+                        player.prepare();
                         player.play();
                     } else if (currentQueueIndex + 1 < songQueue.size()) {
                         playNext();
+                    } else if (!songQueue.isEmpty()) {
+                        // At the end of queue, cycle back to the first song for uninterrupted playback
+                        currentQueueIndex = 0;
+                        currentQueueIndexLive.postValue(0);
+                        if (player.getMediaItemCount() > 0) {
+                            player.seekToDefaultPosition(0);
+                            player.prepare();
+                            player.play();
+                        }
                     }
                 }
             }
@@ -418,36 +445,44 @@ public class PlaybackService extends MediaSessionService {
     public void playSongList(List<Song> songs, int startIndex) {
         if (songs == null || songs.isEmpty()) return;
 
-        songQueue.clear();
-        songQueue.addAll(songs);
-        queueLive.postValue(new ArrayList<>(songQueue));
-
-        if (startIndex < 0 || startIndex >= songQueue.size()) {
-            startIndex = 0;
-        }
-
-        currentQueueIndex = startIndex;
-        currentQueueIndexLive.postValue(currentQueueIndex);
-        playbackRetryCount = 0;
-
+        List<Song> validSongs = new ArrayList<>();
         List<MediaItem> mediaItems = new ArrayList<>();
-        for (Song s : songs) {
+        int validStartIndex = 0;
+
+        for (int i = 0; i < songs.size(); i++) {
+            Song s = songs.get(i);
             MediaItem mi = createMediaItem(s);
             if (mi != null) {
+                if (i == startIndex) {
+                    validStartIndex = validSongs.size();
+                }
+                validSongs.add(s);
                 mediaItems.add(mi);
             }
         }
 
-        if (!mediaItems.isEmpty() && player != null) {
-            int validStartIndex = Math.min(startIndex, mediaItems.size() - 1);
-            player.setMediaItems(mediaItems, validStartIndex, 0);
-            player.prepare();
-            player.play();
-            isPlayingLive.postValue(true);
+        if (validSongs.isEmpty() || player == null) return;
 
-            Song currentSong = songQueue.get(currentQueueIndex);
-            currentSongLive.postValue(currentSong);
+        songQueue.clear();
+        songQueue.addAll(validSongs);
+        queueLive.postValue(new ArrayList<>(songQueue));
+
+        if (validStartIndex < 0 || validStartIndex >= songQueue.size()) {
+            validStartIndex = 0;
         }
+
+        currentQueueIndex = validStartIndex;
+        currentQueueIndexLive.postValue(currentQueueIndex);
+        playbackRetryCount = 0;
+
+        player.setMediaItems(mediaItems, validStartIndex, 0);
+        player.prepare();
+        player.play();
+        isPlayingLive.postValue(true);
+
+        Song currentSong = songQueue.get(currentQueueIndex);
+        currentSongLive.postValue(currentSong);
+        updateForegroundNotification();
     }
 
     public void playSong(Song song) {
@@ -483,20 +518,29 @@ public class PlaybackService extends MediaSessionService {
 
         if (player.getRepeatMode() == Player.REPEAT_MODE_ONE) {
             player.seekTo(0);
+            player.prepare();
             player.play();
             return;
         }
 
         if (player.hasNextMediaItem()) {
             player.seekToNextMediaItem();
+            player.prepare();
             player.play();
         } else if (player.getRepeatMode() == Player.REPEAT_MODE_ALL && !songQueue.isEmpty()) {
             player.seekToDefaultPosition(0);
+            player.prepare();
             player.play();
         } else if (currentQueueIndex + 1 < songQueue.size()) {
             currentQueueIndex++;
             currentQueueIndexLive.postValue(currentQueueIndex);
             playSongList(songQueue, currentQueueIndex);
+        } else if (!songQueue.isEmpty()) {
+            currentQueueIndex = 0;
+            currentQueueIndexLive.postValue(0);
+            player.seekToDefaultPosition(0);
+            player.prepare();
+            player.play();
         }
     }
 
@@ -505,11 +549,14 @@ public class PlaybackService extends MediaSessionService {
 
         if (player.getCurrentPosition() > 3000) {
             player.seekTo(0);
+            player.prepare();
+            player.play();
             return;
         }
 
         if (player.hasPreviousMediaItem()) {
             player.seekToPreviousMediaItem();
+            player.prepare();
             player.play();
         } else if (currentQueueIndex - 1 >= 0) {
             currentQueueIndex--;
@@ -517,6 +564,8 @@ public class PlaybackService extends MediaSessionService {
             playSongList(songQueue, currentQueueIndex);
         } else {
             player.seekTo(0);
+            player.prepare();
+            player.play();
         }
     }
 

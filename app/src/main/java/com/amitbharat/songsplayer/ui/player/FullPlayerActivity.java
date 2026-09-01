@@ -69,31 +69,15 @@ public class FullPlayerActivity extends AppCompatActivity {
     private void setupClickListeners() {
         binding.btnPlayerBack.setOnClickListener(v -> finish());
 
-        binding.btnPlayerMenu.setOnClickListener(v -> {
+        binding.btnBottomDownload.setOnClickListener(v -> {
             Song currentSong = PlaybackService.getCurrentSongLive().getValue();
             if (currentSong == null) return;
 
-            PopupMenu popup = new PopupMenu(this, binding.btnPlayerMenu);
-            popup.getMenu().add(0, 1, 0, "Download (MP3 / MP4)");
-            popup.getMenu().add(0, 2, 1, currentSong.isFavorite() ? "Remove from Favorites" : "Add to Favorites");
-            popup.setOnMenuItemClickListener(item -> {
-                if (item.getItemId() == 1) {
-                    DownloadFormatDialog dialog = new DownloadFormatDialog(currentSong, (selectedSong, isVideo) -> {
-                        downloadViewModel.startDownload(selectedSong, isVideo);
-                        Toast.makeText(this, isVideo ? "Downloading video (.mp4)..." : "Downloading audio (.mp3)...", Toast.LENGTH_SHORT).show();
-                    });
-                    dialog.show(getSupportFragmentManager(), "DownloadFormatDialog");
-                    return true;
-                } else if (item.getItemId() == 2) {
-                    if (playbackService != null) {
-                        currentSong.setFavorite(!currentSong.isFavorite());
-                        binding.btnPlayerFavorite.setImageResource(currentSong.isFavorite() ? R.drawable.ic_favorite : R.drawable.ic_favorite_border);
-                    }
-                    return true;
-                }
-                return false;
+            DownloadFormatDialog dialog = new DownloadFormatDialog(currentSong, (selectedSong, isVideo) -> {
+                downloadViewModel.startDownload(selectedSong, isVideo);
+                Toast.makeText(this, isVideo ? "Downloading video (.mp4)..." : "Downloading audio (.mp3)...", Toast.LENGTH_SHORT).show();
             });
-            popup.show();
+            dialog.show(getSupportFragmentManager(), "DownloadFormatDialog");
         });
 
         binding.btnPlayerFavorite.setOnClickListener(v -> {

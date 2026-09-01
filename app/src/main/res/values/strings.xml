@@ -105,6 +105,7 @@
 
     <!-- Downloads -->
     <string name="downloads_title">Downloads</string>
+    <string name="download">Download</string>
     <string name="download_song">Download Song</string>
     <string name="downloading">Downloading…</string>
     <string name="download_completed">Downloaded</string>

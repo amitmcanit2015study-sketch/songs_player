@@ -65,6 +65,12 @@ android {
             excludes += 'META-INF/ASL2.0'
         }
     }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "songs-player-amit-bharat.apk"
+        }
+    }
 }
 
 dependencies {
