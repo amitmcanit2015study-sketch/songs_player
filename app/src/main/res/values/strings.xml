@@ -58,6 +58,7 @@
     <string name="preset_classical">Classical</string>
     <string name="preset_dance">Dance</string>
     <string name="preset_flat">Flat</string>
+    <string name="speed">Playback Speed</string>
     <string name="preset_heavy_metal">Heavy Metal</string>
     <string name="preset_hip_hop">Hip Hop</string>
     <string name="preset_jazz">Jazz</string>
