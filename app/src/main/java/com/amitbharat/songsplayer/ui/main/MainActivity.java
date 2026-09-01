@@ -108,6 +108,13 @@ public class MainActivity extends AppCompatActivity {
     private long lastBackPressedTime = 0;
 
     private void setupToolbar() {
+        boolean isHindi = com.amitbharat.songsplayer.utils.LocaleHelper.isHindi(this);
+        binding.btnLanguageToggle.setText(isHindi ? "English" : "हिंदी");
+        binding.btnLanguageToggle.setOnClickListener(v -> {
+            String targetLang = com.amitbharat.songsplayer.utils.LocaleHelper.isHindi(this) ? "en" : "hi";
+            com.amitbharat.songsplayer.utils.LocaleHelper.setLocale(this, targetLang);
+        });
+
         binding.topAppBar.setOnMenuItemClickListener(item -> {
             int id = item.getItemId();
             if (id == R.id.action_search) {

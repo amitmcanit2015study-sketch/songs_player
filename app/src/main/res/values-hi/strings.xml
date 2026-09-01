@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">सॉन्ग्स प्लेयर</string>
+    <string name="app_header_title">सॉन्ग्स प्लेयर द्वारा अमित भारत</string>
+    <string name="app_header_subtitle">द्वारा अमित भारत</string>
+    <string name="developer_name">अमित भारत</string>
+    <string name="developed_by_full">डेवलपर: अमित भारत</string>
+    <string name="company_name">रूयस सॉफ्ट टेक</string>
+    <string name="company_name_full">कंपनी: रूयस सॉफ्ट टेक</string>
+    <string name="company_email">rooyssofttech2020@gmail.com</string>
+    <string name="app_version">1.0.0.2</string>
+    <string name="app_version_name">v1.0.0.2 (प्रोडक्शन बिल्ड)</string>
+    <string name="action_about">ऐप के बारे में</string>
+    <string name="nav_settings">सेटिंग्स</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">होम</string>
+    <string name="nav_search">खोजें</string>
+    <string name="nav_local">स्थानीय संगीत</string>
+    <string name="nav_playlists">प्लेलिस्ट</string>
+    <string name="nav_downloads">डाउनलोड</string>
+    
+    <!-- Home Screen -->
+    <string name="home_title">सॉन्ग्स प्लेयर</string>
+    <string name="section_trending">ऑनलाइन ट्रेंडिंग गाने</string>
+    <string name="section_quick_play">त्वरित प्ले</string>
+    <string name="section_recent">हाल ही में सुने गए</string>
+    <string name="section_suggested">आपके लिए सुझाव</string>
+    <string name="see_all">सभी देखें</string>
+    
+    <!-- Local Music Tabs -->
+    <string name="tab_tracks">गाने</string>
+    <string name="tab_albums">एल्बम</string>
+    <string name="tab_artists">कलाकार</string>
+    <string name="tab_folders">फ़ोल्डर्स</string>
+    <string name="tab_genres">शैलियां (Genres)</string>
+    
+    <!-- Player Controls -->
+    <string name="play">चलाएं</string>
+    <string name="pause">रोकें</string>
+    <string name="next">अगला</string>
+    <string name="previous">पिछला</string>
+    <string name="shuffle">शफ़ल</string>
+    <string name="repeat">दोहराएं</string>
+    <string name="queue">प्लेलिस्ट क्रम</string>
+    <string name="sleep_timer">स्लीप टाइमर</string>
+    <string name="equalizer">इक्वलाइज़र</string>
+    <string name="speed">गति</string>
+    
+    <!-- About Screen -->
+    <string name="about_description">सॉन्ग्स प्लेयर एक आधुनिक, निःशुल्क और विज्ञापन-मुक्त ऑनलाइन और ऑफलाइन म्यूजिक प्लेयर है। साफ़ इंटरफ़ेस, उच्च गुणवत्ता और बेहतरीन ऑडियो अनुभव के साथ अपने गानों का आनंद लें।</string>
+</resources>
