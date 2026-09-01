@@ -24,8 +24,8 @@ public class SplashActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         // Animate content slightly
-        binding.centerContent.setAlpha(0f);
-        binding.centerContent.animate().alpha(1f).setDuration(800).start();
+        binding.imgLogo.setAlpha(0f);
+        binding.imgLogo.animate().alpha(1f).setDuration(800).start();
 
         binding.tvSplashDeveloper.setAlpha(0f);
         binding.tvSplashDeveloper.animate().alpha(1f).setDuration(1000).start();
