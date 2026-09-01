@@ -25,13 +25,34 @@ public class AboutActivity extends AppCompatActivity {
             + "Install the attached APK to get started!";
 
     @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(com.amitbharat.songsplayer.utils.LocaleHelper.wrapContext(newBase));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        com.amitbharat.songsplayer.utils.LocaleHelper.applyAppLanguage(this);
         binding = ActivityAboutBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         setupToolbar();
+        setupLanguageToggle();
         setupActions();
+    }
+
+    private void setupLanguageToggle() {
+        boolean isHindi = com.amitbharat.songsplayer.utils.LocaleHelper.isHindi(this);
+        binding.toggleLanguageGroup.check(isHindi ? com.amitbharat.songsplayer.R.id.btnLangHindi : com.amitbharat.songsplayer.R.id.btnLangEnglish);
+
+        binding.toggleLanguageGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (isChecked) {
+                String targetLang = (checkedId == com.amitbharat.songsplayer.R.id.btnLangHindi) ? "hi" : "en";
+                if (!targetLang.equals(com.amitbharat.songsplayer.utils.LocaleHelper.getLanguage(this))) {
+                    com.amitbharat.songsplayer.utils.LocaleHelper.setLocale(this, targetLang);
+                }
+            }
+        });
     }
 
     private void setupToolbar() {

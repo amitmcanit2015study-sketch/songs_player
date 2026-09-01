@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Primary Brand Colors: Deep Royal Blue to Electric Purple -->
-    <color name="primary">#6C5CE7</color>
+    <!-- Primary Brand Colors: Material 3 Indigo (Unified Across All Apps) -->
+    <color name="primary">#3B50DF</color>
     <color name="on_primary">#FFFFFF</color>
-    <color name="primary_container">#E8DEFF</color>
-    <color name="on_primary_container">#23005C</color>
+    <color name="primary_container">#DFE0FF</color>
+    <color name="on_primary_container">#000B5C</color>
 
-    <color name="secondary">#0984E3</color>
+    <color name="secondary">#5C5D72</color>
     <color name="on_secondary">#FFFFFF</color>
-    <color name="secondary_container">#D2E4FF</color>
-    <color name="on_secondary_container">#001D35</color>
+    <color name="secondary_container">#E1E0F9</color>
+    <color name="on_secondary_container">#191A2C</color>
 
-    <color name="tertiary">#E84393</color>
+    <color name="tertiary">#78536B</color>
     <color name="on_tertiary">#FFFFFF</color>
-    <color name="tertiary_container">#FFD8EC</color>
-    <color name="on_tertiary_container">#37002B</color>
+    <color name="tertiary_container">#FFD7EE</color>
+    <color name="on_tertiary_container">#2E1126</color>
 
     <!-- Neutral Colors - Light Mode -->
     <color name="background_light">#F8F9FE</color>
