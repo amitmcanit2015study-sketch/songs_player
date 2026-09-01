@@ -117,6 +117,9 @@ public class MainActivity extends AppCompatActivity {
             } else if (id == R.id.action_sleep_timer) {
                 new SleepTimerDialog().show(getSupportFragmentManager(), "sleep_timer");
                 return true;
+            } else if (id == R.id.action_settings) {
+                startActivity(new Intent(this, com.amitbharat.songsplayer.ui.settings.SettingsActivity.class));
+                return true;
             } else if (id == R.id.action_about) {
                 startActivity(new Intent(this, AboutActivity.class));
                 return true;
