@@ -6,12 +6,15 @@
     <string name="developer_name">अमित भारत</string>
     <string name="developed_by">डेवलपर: अमित भारत</string>
     <string name="developed_by_full">डेवलपर: अमित भारत</string>
-    <string name="company_name">रूयस सॉफ्ट टेक</string>
-    <string name="company_name_full">कंपनी: रूयस सॉफ्ट टेक</string>
+    <string name="company_name_full">कंपनी: रूय्स सॉफ्ट टेक</string>
     <string name="company_email">rooyssofttech2020@gmail.com</string>
     <string name="app_version">1.0.0.2</string>
     <string name="app_version_name">v1.0.0.2 (प्रोडक्शन बिल्ड)</string>
     <string name="action_about">ऐप के बारे में</string>
+    <string name="share_app">ऐप साझा करें</string>
+    <string name="download_apk">डाउनलोड APK</string>
+    <string name="send_feedback">प्रतिक्रिया भेजें</string>
+    <string name="about_footer">100% ऑफलाइन • विज्ञापन-मुक्त • कोई ट्रैकिंग नहीं</string>
     <string name="nav_settings">सेटिंग्स</string>
 
     <!-- Navigation -->
